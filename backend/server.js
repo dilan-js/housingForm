@@ -58,23 +58,28 @@ mongoose
 app.post("/login", (req, res, next) => {
   passport.authenticate("local", (err, user, info) => {
     if (err) throw err;
-    if (!user) res.status(401).send("No User Exists");
-    else {
+    if (!user) res.status(400).send("No User Exists");
+    if (user) {
       req.logIn(user, (err) => {
         if (err) throw err;
-        res.send("Successfully Authenticated");
-        console.log(req.user);
+        // User.find({email: req.body.email}, async(err, doc) => {
+        //     if(err) throw err;
+        //     if(doc){
+        //         res.send("Successfully Authenticated", )
+        //     }
+        // })
+        res.send(req.user);
+        console.log("this is req.user", req.user);
       });
     }
   })(req, res, next);
 });
 app.post("/register", (req, res) => {
-  User.findOne({ username: req.body.username }, async (err, doc) => {
+  User.findOne({ email: req.body.email }, async (err, doc) => {
     if (err) throw err;
     if (doc) res.send("User Already Exists");
     if (!doc) {
       const hashedPassword = await bcrypt.hash(req.body.password, 10);
-
       const newUser = new User({
         username: req.body.username,
         password: hashedPassword,
@@ -99,11 +104,13 @@ app.post("/userdata", (req, res) => {
       const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
       const newUser = new User({
-        username: req.body.name,
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
         password: hashedPassword,
         email: req.body.email,
         movingTo: req.body.movingTo,
         major: req.body.major,
+        school: req.body.school,
       });
       await newUser.save();
       res.send("User Created");
